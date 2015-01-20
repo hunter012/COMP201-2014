@@ -1,0 +1,18 @@
+#include <fstream>
+#include <iostream>
+using namespace std;
+
+int main(int argc, char* argv[]) {
+ifstream input;
+input.open(argv[1]);
+if (input.fail()) {
+cout << "Hey! pass a file in!" << endl;
+return 1; // sad face :-(
+}
+int val;
+while (input >> val) {
+cout << val << endl;
+}
+input.close();
+return 0; // success! victory, etc.
+}
