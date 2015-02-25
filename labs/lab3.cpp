@@ -1,10 +1,11 @@
 #include <iostream>
 #include <cstdlib>
 #include <ctime>
+#include <vector>
 
 using namespace std;
 
-enum State { FIRST, MATCH, NO_MATCH };
+enum State { FIRST, INIT, NO_MATCH };
 
 // To clear the screen, look up ANSI escape codes
 // Concentration game model
@@ -42,8 +43,8 @@ private:
     // What's the height?
     int height;
     // What'd we flip last?
-    int lastRow;
-    int lastColumn;
+    vector<int> lastRow;
+    vector<int> lastColumn;
     State state;
 };
 
@@ -76,9 +77,7 @@ private:
 Model::Model(int w, int h) {
     width = w;
     height = h;
-    lastRow = -1;
-    lastColumn = -1;
-    state = FIRST;
+    state = INIT;
     // Two dimensional array
     grid = new char*[height];
     visible = new char*[height];
@@ -93,7 +92,7 @@ Model::Model(int w, int h) {
         for (int j = 0; j < width; j++) {
             grid[i][j] = letter;
             // Everything's invisible at first
-            visible[i][j] = letter;
+            visible[i][j] = '_';
             // Every other iteration...
             if (j % 2 == 1) {
                 letter++;
@@ -113,9 +112,9 @@ Model::Model(int w, int h) {
             otheri = rand() % height;
             otherj = rand() % width;
             // Swap grid[i][j] with grid[otheri][otherj]
-            letter = visible[i][j];
-            visible[i][j] = visible[otheri][otherj];
-            visible[otheri][otherj] = letter;
+            letter = grid[i][j];
+            grid[i][j] = grid[otheri][otherj];
+            grid[otheri][otherj] = letter;
         }
     }
 }
@@ -141,7 +140,33 @@ bool Model::matched(int row, int column) {
 void Model::flip(int row, int column) {
     // If the row and column are not valid, break out and don't do anything
     if (!valid(row, column)) { return; }
-    
+    visible[row][column] =  grid[row][column];
+	
+    switch(state) {
+    case INIT:
+        // clear out lastRow and lastColumn
+        lastRow.clear();
+        lastColumn.clear();
+        state = FIRST;
+        break;
+    case FIRST:
+        // Check to see if the grid at last row and column match what's in the grid the current column
+        // set the state accordingly
+		if (grid[lastRow.back()][lastColumn.back()] == grid[row][column]) {
+			state = INIT;
+		} else {
+			state = NO_MATCH;
+		}
+        break;
+    case NO_MATCH:
+		visible[lastRow.back()][lastColumn.back()] = '_';
+		visible[lastRow.back()] [lastColumn.back()] = '_'
+        // clear out the visible state in the last two rows/columns
+        // go to the first state
+        break;
+    }
+    lastRow.push_back(row);
+    lastColumn.push_back(column);
 }
 // TODO: If everything is visible, then it's game over
 bool Model::gameOver() {
