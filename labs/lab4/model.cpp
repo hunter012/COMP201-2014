@@ -9,6 +9,7 @@ Model::Model(int w, int h) {
     width = w;
     height = h;
     state = INIT;
+    // Two dimensional array
     grid = new char*[height];
     visible = new char*[height];
     // For every row, create the array for that row
@@ -70,19 +71,29 @@ bool Model::matched(int row, int column) {
 void Model::flip(int row, int column) {
     // If the row and column are not valid, break out and don't do anything
     if (!valid(row, column)) { return; }
-    visible[row][column] = grid[row][column];
-    
+    visible[row][column] =  grid[row][column];
+	
     switch(state) {
     case INIT:
         // clear out lastRow and lastColumn
         lastRow.clear();
+        lastColumn.clear();
         state = FIRST;
         break;
     case FIRST:
         // Check to see if the grid at last row and column match what's in the grid the current column
         // set the state accordingly
+		if (grid[lastRow.back()][lastColumn.back()] == grid[row][column]) {
+			state = INIT;
+		} else {
+			state = NO_MATCH;
+		}
         break;
     case NO_MATCH:
+		visible[lastRow.back()][lastColumn.back()] = '_';
+		lastRow.pop_back();
+		lastColumn.pop_back();
+		visible[lastRow.back()] [lastColumn.back()] = '_';
         // clear out the visible state in the last two rows/columns
         // go to the first state
         break;
@@ -90,34 +101,11 @@ void Model::flip(int row, int column) {
     lastRow.push_back(row);
     lastColumn.push_back(column);
 }
-// If everything is visible, then it's game over
+// TODO: If everything is visible, then it's game over
 bool Model::gameOver() {
-    // Assume the game is over
-    bool isOver = true;
-    // Loop through the grid and see if any element is not visible
-    for (int i = 0; i < height; i++) {
-        for (int j = 0; j < width; j++) {
-            if (visible[i][j] == '_') {
-                isOver = false;
-            }
-        }
-    }
-    
-    if (isOver) {
-        // Set a nice game over message
-        for (int i = 0; i < height; i++) {
-            for (int j = 0; j < width; j++) {
-                visible[i][j] = '_';
-            }
-        }
-        visible[2][3] = 'Y';
-        visible[2][4] = 'O';
-        visible[2][5] = 'U';
-        visible[4][3] = 'W';
-        visible[4][4] = 'I';
-        visible[4][5] = 'N';
-    }
-    return isOver;
+    // Hint: assume the game is over, unless it isn't
+    // Hint: Loop through the grid and see if any element is not visible
+    return false;
 }
 int Model::getWidth() {
     return width;
@@ -126,5 +114,5 @@ int Model::getHeight() {
     return height;
 }
 char Model::get(int row, int col) {
-    return visible[row][col];
+	return visible[row][col];
 }
